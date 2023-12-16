@@ -108,7 +108,9 @@ void MostrarPelicula(Pelicula* peli){
 	printf("Actores: %s\n",peli->actores); 
 	printf("Sinopsis: %s\n",peli->sinopsis); 
 	printf("Clasifición: %s\n",peli->clasificacion); 
-	printf("Calificacion: %.2f",peli->CalifiTotal/peli->votos); 
+	if(peli->votos != 0){
+		printf("Calificacion: %.2f",peli->CalifiTotal/peli->votos); 
+	}
 	printf("\n________________________________________________________________________________\n"); 
 	
 }
