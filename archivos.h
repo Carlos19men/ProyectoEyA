@@ -3,7 +3,7 @@
 #include <string.h>
 
 
-Pelicula* ExtraerDatos(char* cadena){
+Pelicula* ExtraerDatos(char* cadena, int registro){
 	
 	char* token = NULL; 
 	Pelicula* newp = malloc(sizeof(Pelicula)); 
@@ -17,7 +17,7 @@ Pelicula* ExtraerDatos(char* cadena){
 
 	token = strtok(NULL,"/"); 
 	
-	strcpy(newp->estreno,token); 
+	newp->estreno = atoi(token); 
 	
 	token = strtok(NULL,"/"); 
 	
@@ -39,8 +39,18 @@ Pelicula* ExtraerDatos(char* cadena){
 	token = strtok(NULL,"/"); 
 	
 	strcpy(newp->sinopsis,token); 
-	QuitarSalto(newp->sinopsis); 
 	
+	token = strtok(NULL,"/"); 
+
+	strcpy(newp->clasificacion,token); 
+	
+	token = strtok(NULL,"/"); 
+	
+	newp->CalifiTotal = strtof(token,NULL); 
+	
+	newp->votos = 1; 
+	
+	newp->registro = registro; 
 	return newp; 
 }
 
@@ -60,12 +70,57 @@ void InicializarTabla(TablaHash *tabla) {
        printf("No se pudo abrir el archivo.\n");
        return;
     }
+    
+    int i = 0; 
 
     while (fgets(linea, sizeof(linea), archivo)){
-        GuardarPelicula(tabla, ExtraerDatos(linea));
+        GuardarPelicula(tabla, ExtraerDatos(linea,++i));
     }
     
     fclose(archivo);
 }
 
+void GuardarEnArchivo(TablaHash* tabla){
+	
+	//Creamos un nuevo archivo 
+	
+	FILE* archivo = fopen("peliculas.txt","w"); 
+	
+	//verificamos si el archivo existe
+	if(!archivo){
+		printf("error de apertura\n"); 
+		return; 
+	}
+	
+	//recorremos la tabla 
+	for(int i = 0; i < tabla->capacidad; i++){
+		
+		//recorremos las listas 
+		NodeLista *p = tabla->tabla[i].cabecera; 
+		while(p){
+			char clasificacion[5]; 
+			char estreno[6]; 
+			sprintf(estreno,"%d",p->peli->estreno); 
+			sprintf(clasificacion,"%.1f",(p->peli->CalifiTotal/p->peli->votos)); 
+			
+			//Escribos la estrucutra de las peliculas en el archivo 
+			fprintf(archivo,"%s/%s/%s/",p->peli->titulo,estreno,p->peli->genero); 
+			fprintf(archivo,"%s/%s/%s/",p->peli->duracion,p->peli->director,p->peli->actores); 
+			fprintf(archivo,"%s/%s/%s\n",p->peli->sinopsis,p->peli->clasificacion,clasificacion); 
+			p = p->next; 
+		}
+	}
+	
+	fclose(archivo); 
+}
+			
+			
+	
+	
+	
+	
+	
+	
+	
+	
 

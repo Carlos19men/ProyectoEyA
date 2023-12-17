@@ -6,6 +6,10 @@ void ver(char* cadena){   //funcion para detener el codigo
 	getchar(); 
 }
 
+void ver1(int i){
+	printf("ojo1: %d \n",i); 
+	getchar(); 
+}
 void punto(int valor){
 	printf("\nLLEGUE %d\n",valor); 
 	getchar(); 
@@ -33,35 +37,31 @@ int existe(TablaHash* tabla){
 }
 
 int main(){
-
-	//Crear tabla
-
-	//Abrir el archivo
-	
-	//cargar las peliculas del archivo 
-	
+	//Creamos la tabla 	
 	TablaHash* tabla = CrearTabla(5); 
-	
+	//Cargamos las peliculas del archivo 
 	InicializarTabla(tabla); 
 	
-	int n; 
+	int n; //varible de control 
 	
 	do{
-	
+		//Menu
 		system("clear"); 
-		
 		printf("Seleccione una opcion:  "); 
-		
-		printf("\n1- Registrar nueva pelicula: \n2- Modificar una pelicula: \n3- Eliminar una pelicula: \n4- Consultar informacion de una pelicula: \n5- Calificar una pelicula existente: \n6- Listar todas las pelicuas:  \n0- Salir\n\n");
-		
+		printf("\n1- Registrar nueva pelicula: \n2- Modificar una pelicula: \n3- Eliminar una pelicula: \n4- Consultar informacion de una pelicula: \n5- Calificar una pelicula existente: \n6- Listar todas las pelicuas:  \n7- recomendar:  \n0- Salir\n\n");
+		fflush(stdin); 
 		printf("->: "); 
 		scanf("%d",&n); 
 		system("clear"); 
+
+		//Funciones principales 
 		switch(n){
 			case(0): 
 				break; 
 			case(1): 
 				GuardarPelicula(tabla,RegistrarPelicula()); 
+				printf("Pelicula registrada con exito\n"); 
+				getchar(); 
 				break; 
 			case(2): 
 				ModificarPelicula(tabla); 
@@ -75,19 +75,22 @@ int main(){
 			case(5): 
 				CalificarPelicula(tabla); 
 			break; 
-			
 			case(6): 
 				ListarPeliculas(tabla); 
 				getchar(); 
-				break; 
+			break; 
+			case(7): 
+				RecomendarPelicuas(tabla); 
+			break; 
 			default:
 				printf("Opcion no valida..."); 
 				getchar(); 
-				break; 
+			break; 
 		}
-		fflush(stdin); 
 		getchar(); 
+		
 	}while(n != 0); 
+	
+	GuardarEnArchivo(tabla); 
 return 0; 
 }
-

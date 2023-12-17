@@ -8,20 +8,32 @@ typedef char palabras[100];
 
 
 typedef struct peliculas{
-	palabras titulo, estreno, genero, duracion, director; 
-	char sinopsis[150],actores[150],clasificacion[2]; 
+	palabras titulo, genero, duracion, director; 
+	int estreno; 
+	char sinopsis[150],actores[150],clasificacion[4]; 
 	
 	float CalifiTotal; 
 	int votos; 
+	int registro; //linea de la pelicula en el archivo 
 }Pelicula; 
 
-
+//Estructura de recomendaciones 
+typedef struct{
+	palabras genero,director; 
+	char actores[200]; 
+	int estreno; 
+}Recomendaciones; 
 
 //lista simple 
 typedef struct nodoLista{
 	Pelicula* peli; 
 	struct nodoLista* next; 
 }NodeLista; 
+
+//Estructura de buscadores de peliculas 
+typedef struct{
+	Pelicula* espia; 
+}Buscador; 
 
 //Nuevo nodo
 NodeLista* new_item(Pelicula* valor){
@@ -48,7 +60,11 @@ NodeLista* agg_end(NodeLista* listp, NodeLista* newp){
 	return listp; 
 }
 
-
+//Agregar al frente 
+NodeLista* agg_front(NodeLista* listp, NodeLista* newp){
+	newp->next = listp; 
+	return newp; 
+}
 
 //Estrutara de la tabla hash 
 
@@ -94,6 +110,49 @@ TablaHash* CrearTabla(int capacidad) {
 	}
 	return tablah; 
 } 
+
+
+//Arreglos Dinamicos 
+Buscador* CrearArreglo(int tamano){
+
+	Buscador* arreglo = calloc(tamano,sizeof(Buscador)); 
+	
+	//inicializamos todos los apuntadores 
+	for(int i = 0; i < tamano; i++){
+		arreglo[i].espia = NULL; 
+	}
+	return arreglo; 
+}
+
+int CantidadElementos(Buscador *arreglo){
+	return sizeof(arreglo)/sizeof(arreglo[0]); 
+}
+
+void AmpliarArreglo(Buscador* arreglo, int cantidad){
+
+	Buscador* new_arreglo = calloc(CantidadElementos(arreglo),sizeof(Buscador)); 
+	
+	//copiamos toda la información 
+	for(int i = 0; i < CantidadElementos(arreglo); i++){
+		new_arreglo[i].espia = arreglo[i].espia; 
+		arreglo[i].espia = NULL; 
+	}
+	free(arreglo); 
+	
+	//Devolvemos los valores al arreglo 
+	for(int i = 0; i < CantidadElementos(new_arreglo); i++){
+		arreglo[i].espia = new_arreglo[i].espia;
+		new_arreglo[i].espia = NULL;  
+	}
+	free(new_arreglo); 
+}
+	
+
+
+
+
+
+
 
 
 

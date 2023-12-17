@@ -4,6 +4,7 @@
 #include "TablaHash.h"
 
 
+
 //Prototipos de las funciones 
 Pelicula* RegistrarPelicula(); 
 void MostrarPelicula(Pelicula* peli); 
@@ -12,13 +13,26 @@ void ListarPeliculas(TablaHash *tabla);
 void GuardarPelicula(TablaHash *tabla, Pelicula* valor); 
 NodeLista* BuscarPelicula(TablaHash *tabla, char* nombre); 
 void ModificarPelicula(TablaHash *tabla);
-NodeLista* ExtraerPelicula(TablaHash *tabla,NodeLista* ruta1); 
+void ExtraerPelicula(TablaHash *tabla,NodeLista* ruta1); 
 void EliminarPelicula(TablaHash *tabla);
 void ModificarCampo(TablaHash* tabla, NodeLista* ruta);
 void ConsultarPelicula(TablaHash *tabla); 
+float PedirCalificacion(); 
 
-
-
+//Estruturas de las funciones 
+float PedirCalificacion(){
+	float nueva; 
+	scanf("%f",&nueva); 
+	
+	while((nueva < 1) || (nueva > 5)){
+		printf("##Calificacion no valida##\n\n Ingrese nuevamente:  "); 
+		scanf("%f",&nueva); 
+		fflush(stdin); 
+	}
+	
+	return nueva; 
+}
+	
 //Funcion para quitar el salto de linea en una cadena 
 void QuitarSalto(char* cadena){
 	int len = strcspn(cadena,"\n"); 
@@ -59,15 +73,14 @@ Pelicula* RegistrarPelicula(){
     fgets(peli->titulo,sizeof(palabras),stdin);  
     QuitarSalto(peli->titulo); 
     
-    printf("\nIngrese la fecha de estreno de la pelicula:  ");
-    fgets(peli->estreno,sizeof(palabras),stdin);
-    QuitarSalto(peli->estreno); 
+    printf("\nIngrese año de estreno de la pelicula:  ");
+    scanf("%d",&peli->estreno); getchar(); 
     
     printf("\nIngrese el tipo de genero de la pelicula:  ");
     fgets(peli->genero,sizeof(palabras),stdin);
     QuitarSalto(peli->genero); 
     
-    printf("\nIngrese la duracion de la pelicula:  ");
+    printf("\nIngrese la duracion de la pelicula (minutos):  ");
     fgets(peli->duracion, sizeof(palabras), stdin);
     QuitarSalto(peli->duracion);
      
@@ -75,7 +88,7 @@ Pelicula* RegistrarPelicula(){
     fgets(peli->director, sizeof(palabras), stdin);
     QuitarSalto(peli->director); 
     
-    printf("\nIngrese el elenco de actores de la pelicula:  ");
+    printf("\nIngrese el elenco de actores de la pelicula (separados por (,) ) :  ");
     fgets(peli->actores, 150, stdin);
     QuitarSalto(peli->actores);
      
@@ -84,33 +97,32 @@ Pelicula* RegistrarPelicula(){
     QuitarSalto(peli->sinopsis); 
     
     printf("\nIngrese la clasificacion de la pelicula:  ");
-    fgets(peli->clasificacion, 2, stdin);
+    fgets(peli->clasificacion, 4, stdin);
+    QuitarSalto(peli->clasificacion); 
     
+    printf("\nIngrese la calificacion de la pelicula:  "); 
+    peli->CalifiTotal = PedirCalificacion(); 
+    peli->votos = 1; 
     
-    peli->CalifiTotal = peli->votos = 0; 
+    peli->registro = 0; 
     
     return peli;
 }
 
-
-
 //mostra_pelicula
 void MostrarPelicula(Pelicula* peli){
 
-	punto(2); 
-	ver(peli->titulo); 
 	printf("\n________________________________________________________________________________\n"); 
-	printf("Titulo:%s\n",peli->titulo);
-	printf("Estreno: %s\n",peli->estreno); 
+	printf("Titulo: %s\n",peli->titulo);
+	printf("Estreno: %d\n",peli->estreno); 
 	printf("Genero: %s\n",peli->genero);  
 	printf("Tiempo: %s\n",peli->duracion); 
 	printf("Director: %s\n",peli->director); 
-	printf("Actores: %s\n",peli->actores); 
+	printf("Actores principales: %s\n",peli->actores); 
 	printf("Sinopsis: %s\n",peli->sinopsis); 
 	printf("Clasifición: %s\n",peli->clasificacion); 
-	if(peli->votos != 0){
-		printf("Calificacion: %.2f",peli->CalifiTotal/peli->votos); 
-	}
+	printf("Calificacion: %.1f",peli->CalifiTotal/peli->votos); 
+
 	printf("\n________________________________________________________________________________\n"); 
 	
 }
@@ -123,8 +135,6 @@ void MostrarLista(NodeLista* listp){
 	}
 }
 
-
-
 void ListarPeliculas(TablaHash *tabla) {
     // Mostramos todas las peliculas de la tabla 
     
@@ -134,7 +144,6 @@ void ListarPeliculas(TablaHash *tabla) {
     }
 }
 
-
 //funcion para guardar una pelicula 
 void GuardarPelicula(TablaHash *tabla, Pelicula* valor) {
 	//tabla cerrada 
@@ -142,17 +151,13 @@ void GuardarPelicula(TablaHash *tabla, Pelicula* valor) {
 
     //reservamos memoria para el nuevo nodo de la lista
     NodeLista* newp = (NodeLista*)malloc(sizeof(NodeLista));
-    
-    
+     
     newp->peli = valor;
     newp->next = NULL;
-    
-    
+   
     //Agregar a la tabla
     tabla->tabla[indice].cabecera = agg_end(tabla->tabla[indice].cabecera, newp);
 }
-
-
 
 //Buscar una pelicula en la tabla 
 NodeLista* BuscarPelicula(TablaHash *tabla, char* nombre) {
@@ -179,29 +184,31 @@ NodeLista* BuscarPelicula(TablaHash *tabla, char* nombre) {
 	return NULL; 
 }
 
-NodeLista* ExtraerPelicula(TablaHash *tabla,NodeLista* ruta1){
+void ExtraerPelicula(TablaHash *tabla,NodeLista* ruta1){
 	
 	//Si la ruta existe
 	if(ruta1){
 		int indice = FuncionHash(tabla->capacidad,ruta1->peli->titulo); 
 		
 		NodeLista* ruta2 = tabla->tabla[indice].cabecera;  // primer Elemento de la lista
-		
-		if(ruta2 != ruta1){
+
+		if((ruta2) && (ruta2 != ruta1)){
 			//recorremos la lista 
 			for( ; ruta2->next != ruta1; ruta2 = ruta2->next); 
 			
 			//redirecinamos los nodos para sacar la pelicula
 			ruta2->next = ruta1->next; 
-		}else{
-				tabla->tabla[indice].cabecera = ruta1->next; 
+		}else if( ruta2 && (ruta2 == ruta1)){
+			
+			tabla->tabla[indice].cabecera = ruta1->next; 
 		}
 		
-		return ruta1; //retornamos el elementos separado de la tabla 
+		ruta1->next = NULL; 
+		return ; //salimos 
 	}
 	
 	printf("Pelicula no encontrada"); 
-	return NULL; 
+	
 }
 
 void EliminarPelicula(TablaHash *tabla) {
@@ -210,7 +217,7 @@ void EliminarPelicula(TablaHash *tabla) {
 	NodeLista* ruta = BuscarPelicula(tabla,NULL); 
 	
 	if(ruta){
-		NodeLista* ruta1 = ExtraerPelicula(tabla,ruta); 
+		ExtraerPelicula(tabla,ruta); 
     	free(ruta); 
     	printf("Pelicula eliminada con exito!");
     }else printf("Pelicula no encontrada");  
@@ -252,12 +259,14 @@ void ModificarCampo(TablaHash* tabla, NodeLista* ruta){
 			//opciones de la pelicula 
 			printf("\n\nSeleccione uno de los campos a editar:  \n"); 
 			printf("1-Titulo\n");
-			printf("2-Anio de estreno\n");
+			printf("2-Año de estreno\n");
 			printf("3-Genero\n");
 			printf("4-Duracion\n");
 			printf("5-Director\n");
 			printf("6-Actores principales\n");
-			printf("7-sinopsis\n");
+			printf("7-Sinopsis\n");
+			printf("8-Clasificacion: \n"); 
+			printf("9-Calificacion: \n"); 
 			printf("0-Salir \n"); 
 			printf("->  "); 
 			scanf("%d",&res); 
@@ -273,29 +282,31 @@ void ModificarCampo(TablaHash* tabla, NodeLista* ruta){
 					printf("Ingrese un nuevo titulo para la pelicula:  "); 
 					fgets(nuevot,sizeof(palabras),stdin); 
 					QuitarSalto(nuevot); 
-			
-					strcpy(ruta->peli->titulo,nuevot); 
 					
 					//Creamos un nodo la nueva pelicula  
 					Pelicula* nueva = (Pelicula*)malloc(sizeof(Pelicula)); 
 					
-					nueva = ruta->peli; 
-	
-					//Guardamos la pelicula con su nueva clave 
+					//Copiamos la estructura 
+					*nueva = *(ruta->peli); 
+					
+					//cambiamos el nombre 
+					strcpy(nueva->titulo,nuevot); 
+					
+					//Guardamos la pelicula con el nombre cambiado
 					GuardarPelicula(tabla,nueva); 
 					
-					//borramos la anterior 
-					free(ExtreaerPelicua(tabla,ruta)); 
+					ExtraerPelicula(tabla,ruta); 
+					
+					//borramos la ruta anterior 
+					free(ruta); 
 					
 					//bucamos la nueva ruta 
 					ruta = BuscarPelicula(tabla,nueva->titulo); 
-
 				break; 
 			
 				case 2:
-					printf("Ingrese un nuevo anio de estreno para la pelicula:  "); 
-					fgets(ruta->peli->estreno,sizeof(palabras),stdin);  
-					QuitarSalto(ruta->peli->estreno);
+					printf("Ingrese un nuevo añio de estreno para la pelicula:  "); 
+					scanf("%d",&ruta->peli->estreno); 
 				break;  
 			
 				case 3: 
@@ -305,7 +316,7 @@ void ModificarCampo(TablaHash* tabla, NodeLista* ruta){
 				break; 
 			
 				case 4: 
-					printf("Ingrese una nueva duracion en minutos: "); 
+					printf("Ingrese una nueva duracion (en minutos): "); 
 					fgets(ruta->peli->duracion,sizeof(palabras),stdin); 
 					QuitarSalto(ruta->peli->duracion); 
 				break; 
@@ -317,7 +328,7 @@ void ModificarCampo(TablaHash* tabla, NodeLista* ruta){
 				break; 
 			
 				case 6: 
-					printf("Ingrese los nuevos actores principales:  "); 
+					printf("Ingrese los nuevos actores principales (separados por (,) ) :  "); 
 					fgets(ruta->peli->actores,sizeof(ruta->peli->actores),stdin); 
 					QuitarSalto(ruta->peli->actores); 
 				break; 
@@ -326,6 +337,19 @@ void ModificarCampo(TablaHash* tabla, NodeLista* ruta){
 					printf("Ingrese una nueva sinopsis:  "); 
 					fgets(ruta->peli->sinopsis,sizeof(ruta->peli->sinopsis),stdin); 
 					QuitarSalto(ruta->peli->sinopsis);
+				break; 
+				
+				case 8: 
+					printf("Ingrese la clasificación de la pelicula:  "); 
+					fgets(ruta->peli->clasificacion,4,stdin); 
+					QuitarSalto(ruta->peli->clasificacion); 
+				break; 
+				
+				case 9: 
+					
+					printf("Ingrese la nueva calificaicón:   "); 
+					ruta->peli->CalifiTotal = PedirCalificacion(); 
+					ruta->peli->votos = 1; 
 				break; 
 			
 				default: 
@@ -362,7 +386,7 @@ void CalificarPelicula(TablaHash* tabla){
 		
 		MostrarPelicula(ruta->peli);
 		printf("\n\nLe gusto la pelicula? \n\n¿Que calificaión le daría?   ->:  "); 
-		scanf("%f",&califi); 
+		califi = PedirCalificacion(); 
 		
 		ruta->peli->CalifiTotal += califi; 
 		ruta->peli->votos++; 
@@ -378,6 +402,81 @@ void CalificarPelicula(TablaHash* tabla){
 	
 	getchar(); 
 }
+
+int Requisitos(Pelicula* peli, Recomendaciones datos){
+	//peli->estreno == datos.estreno) && CompararCadenas(peli->director,datos.director) && CompararCadenas(peli->genero,datos.genero) && 
+	if(CompararCadenas(peli->genero,datos.genero) && (peli->estreno == datos.estreno) && CompararCadenas(peli->director,datos.director)){
+		return 1; 
+	}
+	return 0; 
+}
+
+
+void RecomendarPelicuas(TablaHash *tabla){
+
+	Recomendaciones datos; 
+	NodeLista *lista = NULL; 
+
+	printf("Bienvenido a la recomendación de peliculas, queremos saber cual es el contenido que te prodrá interesar\n");
 	
+	printf("Porfavor Ingrese los siguientes campos:  \n\n"); 
+	
+	printf("\nAño de estreno: "); 
+	scanf("%d",&datos.estreno); 
+	getchar(); 
+	
+	printf("\nDirector:  "); 
+	fgets(datos.director,sizeof(palabras),stdin); 
+	QuitarSalto(datos.director); 
+	
+	printf("\nGenero: "); 
+	fgets(datos.genero,sizeof(palabras),stdin); 
+	QuitarSalto(datos.genero); 
+	
+	printf("\nActores principales (si son varios separarlos por (,)):  "); 
+	fgets(datos.actores,200,stdin); 
+	QuitarSalto(datos.actores); 
+	
+	
+	Buscador* arreglo = CrearArreglo(10); 
+	
+	int j = 0; 
+	//recorremos la tabla 
+	for(int i = 0; i < tabla->capacidad; i++){
+		NodeLista* p = tabla->tabla[i].cabecera; 
+		
+		while(p){
+			if(Requisitos(p->peli,datos)){
+				if(j == CantidadElementos(arreglo)){
+					AmpliarArreglo(arreglo,5); 
+				}
+				arreglo[j++].espia = p->peli; 
+			}
+			p = p->next; 
+		}
+	}
+	 int i = 0; 
+	while(arreglo[i].espia){
+		MostrarPelicula(arreglo[i++].espia); 
+	}
+}
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	 
+	
+	
+
 
 
